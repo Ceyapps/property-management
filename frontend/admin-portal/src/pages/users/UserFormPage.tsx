@@ -22,46 +22,50 @@ export const UserFormPage: React.FC = () => {
   const [fetchLoading, setFetchLoading] = useState(true);
 
   useEffect(() => {
-    loadRoles();
-    if (isEditMode && id) {
-      loadUser(id);
-    } else {
-      setFetchLoading(false);
-    }
-  }, [id, isEditMode]);
-
-  const loadRoles = async () => {
-    try {
-      const rolesData = await rolesApi.getAll();
-      setRoles(rolesData);
-      // Set default role to 'user' if available
-      const userRole = rolesData.find(r => r.name === 'user');
-      if (userRole && !isEditMode) {
-        setFormData(prev => ({ ...prev, roleId: userRole.id }));
+    const loadRoles = async () => {
+      try {
+        const rolesData = await rolesApi.getAll();
+        setRoles(rolesData);
+        // Set default role to 'user' if available
+        const userRole = rolesData.find(r => r.name === 'user');
+        if (userRole && !isEditMode) {
+          setFormData(prev => ({ ...prev, roleId: userRole.id }));
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load roles');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load roles');
-    }
-  };
+    };
 
-  const loadUser = async (userId: string) => {
-    try {
-      setFetchLoading(true);
-      const user = await usersApi.getById(userId);
-      setFormData({
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        password: '',
-        roleId: user.roleId,
-        isActive: user.isActive,
-      });
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load user');
-    } finally {
-      setFetchLoading(false);
-    }
-  };
+    const loadUser = async (userId: string) => {
+      try {
+        setFetchLoading(true);
+        const user = await usersApi.getById(userId);
+        setFormData({
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          password: '',
+          roleId: user.roleId,
+          isActive: user.isActive,
+        });
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load user');
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+
+    const fetchData = async () => {
+      await loadRoles();
+      if (isEditMode && id) {
+        await loadUser(id);
+      } else {
+        setFetchLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, isEditMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

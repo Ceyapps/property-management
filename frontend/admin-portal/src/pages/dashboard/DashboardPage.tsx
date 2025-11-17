@@ -12,25 +12,25 @@ export const DashboardPage: React.FC = () => {
   });
 
   useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [users, roles] = await Promise.all([
+          usersApi.getAll(),
+          rolesApi.getAll(),
+        ]);
+        setStats({
+          totalUsers: users.length,
+          totalRoles: roles.length,
+          loading: false,
+        });
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+
     loadStats();
   }, []);
-
-  const loadStats = async () => {
-    try {
-      const [users, roles] = await Promise.all([
-        usersApi.getAll(),
-        rolesApi.getAll(),
-      ]);
-      setStats({
-        totalUsers: users.length,
-        totalRoles: roles.length,
-        loading: false,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats(prev => ({ ...prev, loading: false }));
-    }
-  };
 
   return (
     <div className="px-4 py-6 sm:px-0">

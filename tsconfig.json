@@ -1,16 +1,22 @@
 {
-  "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
+    "skipLibCheck": true,
+    "strict": true
+  },
   "references": [
     {
-      "path": "./packages/api-e2e"
+      "path": "./backend/api-e2e"
     },
     {
-      "path": "./packages/api"
+      "path": "./backend/api"
     },
     {
-      "path": "./packages/admin-portal"
+      "path": "./frontend/admin-portal"
     }
   ]
 }

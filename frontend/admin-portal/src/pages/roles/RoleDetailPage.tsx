@@ -11,23 +11,23 @@ export const RoleDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadRole = async (roleId: string) => {
+      try {
+        setLoading(true);
+        const data = await rolesApi.getById(roleId);
+        setRole(data);
+        setError(null);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load role');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (id) {
       loadRole(id);
     }
   }, [id]);
-
-  const loadRole = async (roleId: string) => {
-    try {
-      setLoading(true);
-      const data = await rolesApi.getById(roleId);
-      setRole(data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load role');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

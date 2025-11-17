@@ -16,27 +16,27 @@ export const RoleFormPage: React.FC = () => {
   const [newPermission, setNewPermission] = useState('');
 
   useEffect(() => {
+    const loadRole = async (roleId: string) => {
+      try {
+        setLoading(true);
+        const role = await rolesApi.getById(roleId);
+
+        setFormData({
+          name: role.name,
+          description: role.description || '',
+        });
+        setPermissions(role.permissions);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load role');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (id) {
       loadRole(id);
     }
   }, [id]);
-
-  const loadRole = async (roleId: string) => {
-    try {
-      setLoading(true);
-      const role = await rolesApi.getById(roleId);
-
-      setFormData({
-        name: role.name,
-        description: role.description || '',
-      });
-      setPermissions(role.permissions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load role');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
