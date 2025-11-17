@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["node"],
+    "rootDir": "src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "es2021",
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": []
+}

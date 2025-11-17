@@ -1,0 +1,290 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { usersApi, rolesApi } from '../../services/api';
+import { type CreateUserDto, type UpdateUserDto, type Role } from '../../types';
+
+export const UserFormPage: React.FC = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditMode = !!id;
+
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    roleId: '',
+    isActive: true,
+  });
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [fetchLoading, setFetchLoading] = useState(true);
+
+  useEffect(() => {
+    loadRoles();
+    if (isEditMode && id) {
+      loadUser(id);
+    } else {
+      setFetchLoading(false);
+    }
+  }, [id, isEditMode]);
+
+  const loadRoles = async () => {
+    try {
+      const rolesData = await rolesApi.getAll();
+      setRoles(rolesData);
+      // Set default role to 'user' if available
+      const userRole = rolesData.find(r => r.name === 'user');
+      if (userRole && !isEditMode) {
+        setFormData(prev => ({ ...prev, roleId: userRole.id }));
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load roles');
+    }
+  };
+
+  const loadUser = async (userId: string) => {
+    try {
+      setFetchLoading(true);
+      const user = await usersApi.getById(userId);
+      setFormData({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: '',
+        roleId: user.roleId,
+        isActive: user.isActive,
+      });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load user');
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isEditMode && id) {
+        const updateData: UpdateUserDto = {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          roleId: formData.roleId,
+          isActive: formData.isActive,
+        };
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+        await usersApi.update(id, updateData);
+      } else {
+        const createData: CreateUserDto = {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          password: formData.password,
+          roleId: formData.roleId,
+        };
+        await usersApi.create(createData);
+      }
+      navigate('/users');
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message ||
+          `Failed to ${isEditMode ? 'update' : 'create'} user`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  if (fetchLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="md:grid md:grid-cols-3 md:gap-6">
+        <div className="md:col-span-1">
+          <div className="px-4 sm:px-0">
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              {isEditMode ? 'Edit User' : 'Create New User'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-600">
+              {isEditMode
+                ? 'Update user information and permissions'
+                : 'Add a new user to the system'}
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 md:mt-0 md:col-span-2">
+          <form onSubmit={handleSubmit}>
+            <div className="shadow sm:rounded-md sm:overflow-hidden">
+              <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {error}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-6 gap-6">
+                  <div className="col-span-6 sm:col-span-3">
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      id="firstName"
+                      required
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                    />
+                  </div>
+
+                  <div className="col-span-6 sm:col-span-3">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      id="lastName"
+                      required
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                    />
+                  </div>
+
+                  <div className="col-span-6">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                    />
+                  </div>
+
+                  <div className="col-span-6">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Password {isEditMode && '(leave blank to keep current)'}
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      required={!isEditMode}
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                    />
+                  </div>
+
+                  <div className="col-span-6 sm:col-span-3">
+                    <label
+                      htmlFor="roleId"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Role
+                    </label>
+                    <select
+                      id="roleId"
+                      name="roleId"
+                      value={formData.roleId}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    >
+                      <option value="">Select a role</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {isEditMode && (
+                    <div className="col-span-6 sm:col-span-3">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="isActive"
+                          checked={formData.isActive}
+                          onChange={handleChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm font-medium text-gray-700">
+                          Active
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 space-x-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/users')}
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {loading
+                    ? 'Saving...'
+                    : isEditMode
+                    ? 'Update User'
+                    : 'Create User'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
