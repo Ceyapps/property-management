@@ -1,10 +1,26 @@
 # RBAC Base - Monorepo
 
-A complete Role-Based Access Control (RBAC) system with separate backend API and frontend admin portal.
+A complete Role-Based Access Control (RBAC) system with backend API and frontend admin portal managed as an Nx monorepo.
+
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Applications](#applications)
+- [Getting Started](#getting-started)
+- [Project Features](#project-features)
+- [Technology Stack](#technology-stack)
+- [Deployment](#deployment)
+- [Development Workflow](#development-workflow)
+- [Environment Variables](#environment-variables)
+- [Database Management](#database-management)
+- [API Documentation](#api-documentation)
+- [Security Considerations](#security-considerations)
+- [Workspace Management](#workspace-management)
 
 ## Project Structure
 
-This repository contains two independent applications that can be deployed and maintained separately:
+This repository uses Nx workspace with separate backend and frontend applications:
 
 ```
 rbacbase/
@@ -20,25 +36,25 @@ rbacbase/
 │   ├── package.json
 │   └── README.md
 │
-└── packages/        # (Legacy Nx structure - can be removed)
+├── docker-compose.yml  # Root docker compose for database
+├── package.json        # Root workspace configuration
+└── node_modules/       # Shared dependencies
 ```
 
 ## Quick Start
 
-### Option 1: Run Both Projects
+### Option 1: Run Both Projects with Nx (Recommended)
 
 From the root directory:
 
 ```bash
-# Terminal 1 - Backend
-cd backend
+# Install all dependencies (root + backend + frontend)
 npm install
-docker-compose up -d
-npm run start:dev
 
-# Terminal 2 - Frontend
-cd frontend
-npm install
+# Start database (from root or backend directory)
+npm run db:up
+
+# Run both API and Admin Portal in parallel
 npm run dev
 ```
 
@@ -48,7 +64,13 @@ npm run dev
 
 ### Option 2: Run Individually
 
-Each project is now independent and can be run separately.
+```bash
+# Terminal 1 - Backend only
+npm run api:serve
+
+# Terminal 2 - Frontend only
+npm run admin:serve
+```
 
 ## Applications
 
@@ -98,38 +120,50 @@ npm run dev             # Start admin portal
 
 ## Getting Started
 
-### 1. Set Up Backend
+### 1. Install Dependencies
+
+From the root directory:
 
 ```bash
-cd backend
+# Install all dependencies for root, backend, and frontend
 npm install
-
-# Copy and configure environment
-cp .env.example .env
-# Edit .env with your settings
-
-# Start database
-docker-compose up -d
-
-# Start API
-npm run start:dev
 ```
 
-### 2. Set Up Frontend
+### 2. Configure Environment
 
 ```bash
-cd frontend
-npm install
-
-# Copy and configure environment
+# Copy root environment file
 cp .env.example .env
-# Edit .env to point to your API
 
-# Start frontend
+# Edit .env with your database settings
+# Default values should work for local development
+```
+
+### 3. Start Database
+
+```bash
+# Start PostgreSQL and Adminer using Docker
+npm run db:up
+
+# View database logs (optional)
+npm run db:logs
+
+# Stop database when done
+npm run db:down
+```
+
+### 4. Start Applications
+
+```bash
+# Run both backend and frontend in parallel (recommended)
 npm run dev
+
+# OR run individually
+npm run api:serve    # Backend only
+npm run admin:serve  # Frontend only
 ```
 
-### 3. Create Admin User
+### 5. Create Admin User
 
 ```bash
 # Register first user
@@ -190,7 +224,17 @@ Three role levels:
 
 ## Deployment
 
-Both applications can be deployed independently:
+Both applications can be built and deployed independently:
+
+### Building for Production
+
+```bash
+# Build backend
+npm run api:build
+
+# Build frontend
+npm run admin:build
+```
 
 ### Backend Deployment
 
@@ -199,7 +243,9 @@ The backend is a standard NestJS application that can be deployed to:
 - **Containers**: Docker, Kubernetes
 - **VPS**: Any Linux server with Node.js and PostgreSQL
 
-See [backend/README.md](backend/README.md#deployment) for details.
+Build output is located in `backend/dist/`
+
+See [backend/README.md](backend/README.md) for detailed deployment instructions.
 
 ### Frontend Deployment
 
@@ -208,31 +254,59 @@ The frontend is a static SPA that can be deployed to:
 - **CDN**: AWS S3 + CloudFront, Google Cloud Storage
 - **Any web server**: Nginx, Apache
 
-See [frontend/README.md](frontend/README.md#deployment) for details.
+Build output is located in `frontend/dist/`
+
+See [frontend/README.md](frontend/README.md) for detailed deployment instructions.
 
 ## Development Workflow
 
-### Backend Development
+### Using Nx Commands (Recommended)
+
+From the root directory:
+
 ```bash
+# Serve applications
+npm run api:serve        # Backend only
+npm run admin:serve      # Frontend only
+npm run dev              # Both in parallel
+
+# Build applications
+npm run api:build        # Build backend
+npm run admin:build      # Build frontend
+
+# Test backend
+npm run api:test         # Unit tests
+
+# Database management
+npm run db:up            # Start database
+npm run db:down          # Stop database
+npm run db:logs          # View database logs
+```
+
+### Direct Commands (Alternative)
+
+You can also work directly in each directory:
+
+```bash
+# Backend (from backend/ directory)
 cd backend
 npm run start:dev        # Development with watch mode
 npm run test             # Run tests
 npm run test:e2e         # Run e2e tests
 npm run build            # Build for production
-```
 
-### Frontend Development
-```bash
+# Frontend (from frontend/ directory)
 cd frontend
 npm run dev              # Development server
 npm run build            # Build for production
 npm run preview          # Preview production build
-npm run lint             # Lint code
 ```
 
 ## Environment Variables
 
-### Backend (.env)
+### Root (.env)
+Located at the root of the project:
+
 ```env
 DB_HOST=localhost
 DB_PORT=5432
@@ -245,7 +319,12 @@ PORT=3000
 NODE_ENV=development
 ```
 
+### Backend (.env)
+The backend also has a `.env` file (backend/.env) with the same database configuration.
+
 ### Frontend (.env)
+Located at `frontend/.env`:
+
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
@@ -288,15 +367,37 @@ See [backend/README.md](backend/README.md) for full API documentation.
 - **Passwords**: Minimum 6 characters enforced
 - **Admin Access**: Only admins can access admin portal
 
-## Migrating from Nx Monorepo
+## Workspace Management
 
-This project has been restructured from an Nx monorepo to separate projects:
+This project uses an Nx monorepo structure with npm workspaces:
 
-- `packages/api` → `backend/api`
-- `packages/admin-portal` → `frontend/admin-portal`
-- Docker files → `backend/`
+- **Root workspace**: Contains shared dependencies and build scripts
+- **Backend workspace**: Independent package with its own dependencies (`backend/package.json`)
+- **Frontend workspace**: Independent package with its own dependencies (`frontend/package.json`)
 
-The `packages/` directory can be safely removed if you no longer need the Nx setup.
+### Benefits of Nx Monorepo Structure
+
+- **Shared Dependencies**: Common packages are installed once at the root level
+- **Parallel Execution**: Run multiple tasks simultaneously with `npm run dev`
+- **Unified Commands**: Manage both apps from the root directory
+- **Task Caching**: Nx caches build outputs for faster rebuilds
+- **Code Sharing**: Easy to share types and utilities between apps
+
+### Available Root Scripts
+
+```bash
+npm run api:serve      # Serve backend API
+npm run api:build      # Build backend API
+npm run api:test       # Test backend API
+npm run admin:serve    # Serve admin portal
+npm run admin:build    # Build admin portal
+npm run dev            # Run both API and admin portal in parallel
+npm run db:up          # Start database
+npm run db:down        # Stop database
+npm run db:logs        # View database logs
+```
+
+Each workspace can also be developed independently by navigating to its directory and using its local scripts.
 
 ## License
 
