@@ -1,6 +1,6 @@
-# RBAC Base - Monorepo
+# Property Management - Monorepo
 
-A complete Role-Based Access Control (RBAC) system with backend API and frontend admin portal managed as an Nx monorepo.
+A complete property management system with backend API and frontend admin portal managed as an Nx monorepo.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ A complete Role-Based Access Control (RBAC) system with backend API and frontend
 This repository uses Nx workspace with separate backend and frontend applications:
 
 ```
-rbacbase/
+property-management/
 ├── backend/          # NestJS API with PostgreSQL
 │   ├── api/         # API source code
 │   ├── api-e2e/     # E2E tests
@@ -82,7 +82,7 @@ A NestJS REST API with:
 - JWT authentication
 - Role-based access control (Admin, Moderator, User)
 - PostgreSQL database with TypeORM
-- User management CRUD operations
+- User and property management CRUD operations
 - Docker setup for database
 
 **Tech Stack:** NestJS, TypeORM, PostgreSQL, Passport, JWT
@@ -101,9 +101,9 @@ npm run start:dev       # Start API
 
 **Location:** `frontend/`
 
-A React admin interface for managing users:
+A React admin interface for managing properties and users:
 - Admin-only access control
-- User management UI (CRUD)
+- Property and user management UI (CRUD)
 - JWT authentication
 - Responsive design with Tailwind CSS
 
@@ -312,7 +312,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=rbacuser
 DB_PASSWORD=rbacpassword
-DB_DATABASE=rbacbase
+DB_DATABASE=property_management
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=7d
 PORT=3000
@@ -336,7 +336,7 @@ Access the database UI (Adminer) at `http://localhost:8080`:
 - **Server**: postgres
 - **Username**: rbacuser
 - **Password**: rbacpassword
-- **Database**: rbacbase
+- **Database**: property_management
 
 ## API Documentation
 

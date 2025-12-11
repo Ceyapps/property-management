@@ -1,17 +1,17 @@
 {
-  "name": "@rbacbase/source",
+  "name": "property-management",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "api:serve": "nx serve api",
-    "api:build": "nx build api",
-    "api:test": "nx test api",
-    "admin:serve": "nx serve admin-portal",
-    "admin:build": "nx build admin-portal",
+    "api:serve": "npm run start:dev --workspace=backend",
+    "api:build": "npm run build --workspace=backend",
+    "api:test": "npm run test --workspace=backend",
+    "admin:serve": "npm run dev --workspace=frontend",
+    "admin:build": "npm run build --workspace=frontend",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
     "db:logs": "docker-compose logs -f postgres",
-    "dev": "nx run-many --target=serve --projects=api,admin-portal --parallel"
+    "dev": "npm run start:dev --workspace=backend & npm run dev --workspace=frontend"
   },
   "private": true,
   "devDependencies": {
@@ -51,7 +51,8 @@
     "webpack-cli": "^5.1.4"
   },
   "workspaces": [
-    "packages/*"
+    "backend",
+    "frontend"
   ],
   "dependencies": {
     "@nestjs/common": "^11.0.0",

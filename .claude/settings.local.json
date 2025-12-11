@@ -12,7 +12,11 @@
       "Bash(docker exec:*)",
       "Bash(test:*)",
       "Bash(wc:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(ls:*)",
+      "Bash(du:*)",
+      "Bash(npm run api:serve:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []
